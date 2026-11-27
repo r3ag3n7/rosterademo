@@ -1,5 +1,12 @@
 # Rostera demo decisions
 
+## Profile and collaboration data
+
+- Profile photo, about text, age, department, goals, and skills are currently stored in the user's browser. Photos are resized to small JPEGs before saving.
+- Chats, news likes, and comments use synthetic starter content and browser-local storage so demo accounts in the same browser can interact.
+- Do not enter real employee data in the public demo. The prepared Supabase schema keeps age, about text, development goals, and skills in a self-readable `profile_details` table, separate from the company-visible directory.
+- Cross-device messaging and news sync need a Supabase project URL and public anon key plus `supabase/schema.sql`. The service-role key must remain private and is never used in the browser.
+
 ## Static demo storage
 
 The public GitHub Pages version is a static prototype. Registration, profile fields, permission choices, learning progress, points, and reward redemptions are kept in browser `localStorage`. They are not a shared company database and cannot sync across devices. Do not enter real confidential employee data.
