@@ -44,6 +44,9 @@
   navKeys.pop(); navIcons.pop();
   navKeys.push('messages','news','assistant'); navIcons.push('✉','◉','✳');
 
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+  const currentUser = () => accounts[activeAccountId] || accounts.anna;
+  const roleLabel = account => account.positionKey ? I18N[lang]?.[account.positionKey] : (account.role === 'manager' ? I18N[lang].manager : account.role === 'mentor' ? I18N[lang].mentorRole : I18N[lang].employee);
   const word = key => I18N[lang]?.[key] || I18N.ru[key] || key;
   const communityKey = 'rostera-community-v1';
   const readCommunity = () => {
@@ -78,7 +81,7 @@
     let image = '';
     try { image = loadStore(account.id).profile?.avatarDataUrl || ''; } catch {}
     if (!/^data:image\/jpeg;base64,[a-z0-9+/=]+$/i.test(image)) image = '';
-    return image ? `<span class="person-avatar ${size}"><img src="${image}" alt=""></span>` : `<span class="person-avatar ${size}">${safe(initials(account))}</span>`;
+    return image ? `<span class="person-avatar ${size}"><img src="${image}" alt=""></span>` : `<span class="person-avatar ${size}">${escapeHtml(initials(account))}</span>`;
   }
   function updateAvatar() {
     const holder = document.querySelector('#profile-avatar');
@@ -92,7 +95,7 @@
   function showAccountMenu() {
     const account = accounts[activeAccountId] || accounts.anna;
     const dialog = document.querySelector('#account-dialog'), body = document.querySelector('#account-dialog-body');
-    body.innerHTML = `<div class="row"><h2>${word('profile')}</h2><button type="button" class="btn outline small" id="close-account">×</button></div><div class="account-summary">${avatarMarkup(account,'large')}<div><strong>${safe(account.name)}</strong><div class="metric-label">${safe(roleText(account))}</div></div></div><div class="form account-actions"><button type="button" class="btn" id="open-profile">${word('profile')}</button><button type="button" class="btn outline" id="switch-account">${word('switchAccount')}</button><button type="button" class="btn outline" id="logout-account">${word('logout')}</button></div>`;
+    body.innerHTML = `<div class="row"><h2>${word('profile')}</h2><button type="button" class="btn outline small" id="close-account">×</button></div><div class="account-summary">${avatarMarkup(account,'large')}<div><strong>${escapeHtml(account.name)}</strong><div class="metric-label">${escapeHtml(roleLabel(account))}</div></div></div><div class="form account-actions"><button type="button" class="btn" id="open-profile">${word('profile')}</button><button type="button" class="btn outline" id="switch-account">${word('switchAccount')}</button><button type="button" class="btn outline" id="logout-account">${word('logout')}</button></div>`;
     dialog.showModal();
     document.querySelector('#close-account').onclick = () => dialog.close();
     document.querySelector('#open-profile').onclick = () => { dialog.close(); openProfileEditor(); };
@@ -105,7 +108,7 @@
   function openProfileEditor() {
     const profile = store.profile || {};
     const modal = document.querySelector('#modal'), body = document.querySelector('#modal-body');
-    body.innerHTML = `<form id="personal-profile-form" class="form"><div class="row"><h2>${word('profile')}</h2><button type="button" class="btn outline small" id="close-profile">×</button></div><div class="profile-photo-row">${avatarMarkup(me(),'large')}<div class="field"><label for="profile-photo">${word('photo')}</label><input id="profile-photo" type="file" accept="image/*"><small>${word('photoNote')}</small></div></div><div class="field"><label for="personal-about">${word('about')}</label><textarea id="personal-about" name="about" maxlength="500">${safe(profile.about||'')}</textarea></div><div class="field"><label for="personal-age">${word('age')}</label><input id="personal-age" name="age" type="number" min="14" max="100" inputmode="numeric" value="${safe(profile.age||'')}"></div><div class="field"><label for="personal-area">${word('department')}</label><input id="personal-area" name="area" maxlength="80" value="${safe(profile.area||'')}" placeholder="${word('department')}"></div><div class="field"><label for="personal-goal">${word('goals')}</label><textarea id="personal-goal" name="goal" maxlength="500">${safe(profile.goal||'')}</textarea></div><div class="field"><label for="personal-skills">${word('skills')}</label><textarea id="personal-skills" name="skills" maxlength="500">${safe(profile.skills||'')}</textarea></div><p class="metric-label">${word('profilePrivacy')}</p><div class="row"><button type="button" class="btn outline" id="cancel-profile">${t('cancel')}</button><button class="btn">${word('save')}</button></div></form>`;
+    body.innerHTML = `<form id="personal-profile-form" class="form"><div class="row"><h2>${word('profile')}</h2><button type="button" class="btn outline small" id="close-profile">×</button></div><div class="profile-photo-row">${avatarMarkup(currentUser(),'large')}<div class="field"><label for="profile-photo">${word('photo')}</label><input id="profile-photo" type="file" accept="image/*"><small>${word('photoNote')}</small></div></div><div class="field"><label for="personal-about">${word('about')}</label><textarea id="personal-about" name="about" maxlength="500">${escapeHtml(profile.about||'')}</textarea></div><div class="field"><label for="personal-age">${word('age')}</label><input id="personal-age" name="age" type="number" min="14" max="100" inputmode="numeric" value="${escapeHtml(profile.age||'')}"></div><div class="field"><label for="personal-area">${word('department')}</label><input id="personal-area" name="area" maxlength="80" value="${escapeHtml(profile.area||'')}" placeholder="${word('department')}"></div><div class="field"><label for="personal-goal">${word('goals')}</label><textarea id="personal-goal" name="goal" maxlength="500">${escapeHtml(profile.goal||'')}</textarea></div><div class="field"><label for="personal-skills">${word('skills')}</label><textarea id="personal-skills" name="skills" maxlength="500">${escapeHtml(profile.skills||'')}</textarea></div><p class="metric-label">${word('profilePrivacy')}</p><div class="row"><button type="button" class="btn outline" id="cancel-profile">${t('cancel')}</button><button class="btn">${word('save')}</button></div></form>`;
     modal.showModal();
     document.querySelectorAll('#close-profile,#cancel-profile').forEach(button=>button.onclick=()=>modal.close());
     let avatarDataUrl = profile.avatarDataUrl || '';
@@ -120,7 +123,7 @@
       e.preventDefault(); const data=Object.fromEntries(new FormData(e.currentTarget)); const age=data.age===''?'':Number(data.age);
       if(age!==''&&(!Number.isInteger(age)||age<14||age>100)){document.querySelector('#personal-age').reportValidity();return;}
       store.profile={...store.profile,about:String(data.about||'').trim().slice(0,500),age,area:String(data.area||'').trim().slice(0,80),goal:String(data.goal||'').trim().slice(0,500),skills:String(data.skills||'').trim().slice(0,500),avatarDataUrl};
-      persist(); event('profile_updated'); updateAvatar(); modal.close(); toast(word('profileSaved'));
+      save(); event('profile_updated'); updateAvatar(); modal.close(); toast(word('profileSaved'));
     };
   }
 
@@ -134,10 +137,10 @@
     const currentContact = contacts.find(account=>conversationId(account.id)===activeConversation);
     const title = active ? word(active[1]) : currentContact?.name || word('direct');
     const list = messagesFor(activeConversation);
-    const navButton = (id,label,icon='◉') => `<button type="button" class="conversation-link ${activeConversation===id?'active':''}" data-chat="${safe(id)}"><span class="conversation-icon">${icon}</span><span>${safe(label)}</span></button>`;
+    const navButton = (id,label,icon='◉') => `<button type="button" class="conversation-link ${activeConversation===id?'active':''}" data-chat="${escapeHtml(id)}"><span class="conversation-icon">${icon}</span><span>${escapeHtml(label)}</span></button>`;
     const contactsHtml = contacts.map(contact=>navButton(conversationId(contact.id),contact.name,'↗')).join('');
-    const bubbles = list.map(message=>{const sender=accounts[message.from]||{id:message.from,name:'Сотрудник',initials:'С'};return `<article class="message-bubble ${message.from===activeAccountId?'mine':''}">${message.from===activeAccountId?'':`<strong>${safe(sender.name)}</strong>`}<div>${safe(message.text)}</div><time>${new Intl.DateTimeFormat(lang==='hy'?'hy-AM':lang==='en'?'en-US':'ru-RU',{hour:'2-digit',minute:'2-digit'}).format(new Date(message.at))}</time></article>`;}).join('');
-    return `${header('messages',word('privateNote'))}${localBanner()}<div class="messenger-layout section"><aside class="card conversation-panel"><h2>${word('groups')}</h2>${groups.map(([id,key])=>navButton(id,word(key))).join('')}<h2 class="conversation-subhead">${word('people')}</h2>${contactsHtml||`<div class="metric-label">${word('noMessages')}</div>`}</aside><section class="card conversation-window"><div class="conversation-heading"><span><strong>${safe(title)}</strong><small>${active?word('group'):word('direct')}</small></span><span class="tag">${word('localOnly')}</span></div><div class="message-list" id="message-list" aria-live="polite">${bubbles||`<div class="empty">${word('noMessages')}</div>`}</div><form id="team-message-form" class="team-message-form"><textarea name="body" maxlength="2000" placeholder="${word('writeMessage')}" required></textarea><button class="btn" type="submit">${word('send')}</button></form></section></div>`;
+    const bubbles = list.map(message=>{const sender=accounts[message.from]||{id:message.from,name:'Сотрудник',initials:'С'};return `<article class="message-bubble ${message.from===activeAccountId?'mine':''}">${message.from===activeAccountId?'':`<strong>${escapeHtml(sender.name)}</strong>`}<div>${escapeHtml(message.text)}</div><time>${new Intl.DateTimeFormat(lang==='hy'?'hy-AM':lang==='en'?'en-US':'ru-RU',{hour:'2-digit',minute:'2-digit'}).format(new Date(message.at))}</time></article>`;}).join('');
+    return `${header('messages',word('privateNote'))}${localBanner()}<div class="messenger-layout section"><aside class="card conversation-panel"><h2>${word('groups')}</h2>${groups.map(([id,key])=>navButton(id,word(key))).join('')}<h2 class="conversation-subhead">${word('people')}</h2>${contactsHtml||`<div class="metric-label">${word('noMessages')}</div>`}</aside><section class="card conversation-window"><div class="conversation-heading"><span><strong>${escapeHtml(title)}</strong><small>${active?word('group'):word('direct')}</small></span><span class="tag">${word('localOnly')}</span></div><div class="message-list" id="message-list" aria-live="polite">${bubbles||`<div class="empty">${word('noMessages')}</div>`}</div><form id="team-message-form" class="team-message-form"><textarea name="body" maxlength="2000" placeholder="${word('writeMessage')}" required></textarea><button class="btn" type="submit">${word('send')}</button></form></section></div>`;
   }
   function renderNews() {
     community=readCommunity();
@@ -147,11 +150,11 @@
     const cards=visible.map(item=>{
       const author=accounts[item.author]||{name:'Команда Rostera',initials:'R'};
       const liked=item.likes.includes(activeAccountId);
-      const comments=item.comments.map(comment=>`<div class="news-comment"><strong>${safe((accounts[comment.author]||{name:'Сотрудник'}).name)}</strong><p>${safe(comment.body)}</p></div>`).join('');
+      const comments=item.comments.map(comment=>`<div class="news-comment"><strong>${escapeHtml((accounts[comment.author]||{name:'Сотрудник'}).name)}</strong><p>${escapeHtml(comment.body)}</p></div>`).join('');
       const date=new Intl.DateTimeFormat(lang==='hy'?'hy-AM':lang==='en'?'en-US':'ru-RU',{day:'numeric',month:'short'}).format(new Date(item.at));
       const department=item.department==='allDepartments'?word('allDepartments'):item.department;
       const category=I18N[lang]?.[item.category]||item.category;
-      return card(`<div class="news-meta"><span class="news-author">${avatarMarkup(author)}<span><strong>${safe(author.name)}</strong><small>${safe(department)} · ${date}</small></span></span><span class="tag">${safe(category)}</span></div><h2>${safe(item.title)}</h2><p class="news-body">${safe(item.body)}</p><div class="news-actions"><button type="button" class="btn outline small ${liked?'is-liked':''}" data-like="${safe(item.id)}">${liked?'♥':'♡'} ${word(liked?'liked':'like')} · ${item.likes.length}</button><span class="metric-label">${item.comments.length} ${word('comments').toLocaleLowerCase()}</span></div><div class="news-comments">${comments||`<p class="metric-label">${word('noComments')}</p>`}</div><form class="news-comment-form" data-comment-form="${safe(item.id)}"><input name="body" maxlength="500" placeholder="${word('writeComment')}" required><button class="btn small" type="submit">${word('postComment')}</button></form>`,'news-card');
+      return card(`<div class="news-meta"><span class="news-author">${avatarMarkup(author)}<span><strong>${escapeHtml(author.name)}</strong><small>${escapeHtml(department)} · ${date}</small></span></span><span class="tag">${escapeHtml(category)}</span></div><h2>${escapeHtml(item.title)}</h2><p class="news-body">${escapeHtml(item.body)}</p><div class="news-actions"><button type="button" class="btn outline small ${liked?'is-liked':''}" data-like="${escapeHtml(item.id)}">${liked?'♥':'♡'} ${word(liked?'liked':'like')} · ${item.likes.length}</button><span class="metric-label">${item.comments.length} ${word('comments').toLocaleLowerCase()}</span></div><div class="news-comments">${comments||`<p class="metric-label">${word('noComments')}</p>`}</div><form class="news-comment-form" data-comment-form="${escapeHtml(item.id)}"><input name="body" maxlength="500" placeholder="${word('writeComment')}" required><button class="btn small" type="submit">${word('postComment')}</button></form>`,'news-card');
     }).join('');
     return `${header('news',word('newsSubtitle'))}${localBanner()}<div class="tabs news-filters section">${filterHtml}</div><div class="news-feed">${cards||`<div class="empty">${word('noComments')}</div>`}</div>`;
   }
@@ -188,7 +191,7 @@
     e.preventDefault(); e.stopImmediatePropagation();
     const data=Object.fromEntries(new FormData(e.target));
     store.profile={...store.profile,area:String(data.area||'').slice(0,80),skills:String(data.skills||'').slice(0,500),goal:String(data.goal||'').slice(0,500),shareMentor:data.shareMentor==='on',shareManager:data.shareManager==='on',allowEdit:data.allowEdit==='on'};
-    persist(); event('profile_updated'); updateAvatar(); toast(word('saved')); render();
+    save(); event('profile_updated'); updateAvatar(); toast(word('saved')); render();
   },true);
   window.addEventListener('storage',e=>{if(e.key===communityKey&&['messages','news'].includes(page))render();});
   updateAvatar();
