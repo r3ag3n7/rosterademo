@@ -162,6 +162,8 @@ h2 { color: #213a4c; }
 .search::placeholder, .field input::placeholder, .field textarea::placeholder { color: #8a9ba6; }
 .tabs { background: #e8eef3; }
 .tabs button.active { background: #fff; color: #1e6290; box-shadow: 0 2px 7px #19364712; }
+.auth-tabs #auth-login-tab.active, .auth-tabs #auth-register-tab.active { background: #fff !important; color: #1e6290 !important; }
+.auth-card #register-form[hidden] { display: none !important; }
 .table th { color: #637886; }
 .table th, .table td { border-color: #e3ebf0; }
 .scale label { border-color: #dce5eb; background: #fff; }
